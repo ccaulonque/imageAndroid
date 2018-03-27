@@ -1,0 +1,70 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.cyril.traitementdimage.MainActivity">
+    <item
+        android:id="@+id/action_griser"
+        android:orderInCategory="100"
+        android:title="@string/Griser"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_griserextension"
+        android:orderInCategory="100"
+        android:title="@string/GriserExtension"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_coloriser"
+        android:orderInCategory="100"
+        android:title="@string/Coloriser"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_bw"
+        android:orderInCategory="100"
+        android:title="@string/NoirEtBlanc"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_filtrer"
+        android:orderInCategory="100"
+        android:title="@string/Filtrer"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_extensioncouleur"
+        android:orderInCategory="100"
+        android:title="@string/ExtCouleur"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_egaliser"
+        android:orderInCategory="100"
+        android:title="@string/Egalisation"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_histogramme"
+        android:orderInCategory="100"
+        android:title="@string/Histogramme"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_flou"
+        android:orderInCategory="100"
+        android:title="@string/Flouter"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_flougaussien"
+        android:orderInCategory="100"
+        android:title="@string/FlouterGaussien"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_gradient"
+        android:orderInCategory="100"
+        android:title="@string/Gradient"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_laplace"
+        android:orderInCategory="100"
+        android:title="@string/Laplace"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_restaurer"
+        android:orderInCategory="100"
+        android:title="@string/Restaurer"
+        app:showAsAction="never" />
+</menu>

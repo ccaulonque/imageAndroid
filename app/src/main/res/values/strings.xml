@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Traitement d\'image</string>
+    <string name="action_settings">Settings</string>
+    <string name="Griser">Griser</string>
+    <string name="GriserExtension">Griser + Extension</string>
+    <string name="Coloriser">Coloriser</string>
+    <string name="Filtrer">Filtrer</string>
+    <string name="Restaurer">Restaurer</string>
+    <string name="Histogramme">Histogramme</string>
+    <string name="ExtCouleur">Extension RGB</string>
+    <string name="Egalisation">Égalisation</string>
+    <string name="Flouter">Flou</string>
+    <string name="FlouterGaussien">Flou Gaussien</string>
+    <string name="Gradient">Gradient</string>
+    <string name="Laplace">Laplace</string>
+    <string name="NoirEtBlanc">Noir &amp; Blanc</string>
+
+</resources>
