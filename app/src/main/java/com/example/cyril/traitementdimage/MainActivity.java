@@ -3,8 +3,11 @@ package com.example.cyril.traitementdimage;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -15,7 +18,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Button;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import static com.example.cyril.traitementdimage.Traitement.*;
 
@@ -33,7 +40,10 @@ public class MainActivity extends AppCompatActivity {
     static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int PICK_KERNEL_SIZE = 2;
 
-    ArrayList<Integer> images = new ArrayList<Integer>(); //liste des images disponibles
+    ArrayList<Bitmap> images = new ArrayList<Bitmap>(); //liste des images disponibles
+
+    String mCurrentPhotoPath;
+
 
     private void callHisto(){
         //intent avec l'histogramme de la bitmap actuelle
@@ -58,11 +68,45 @@ public class MainActivity extends AppCompatActivity {
         overridePendingTransition(R.anim.slidertl2, R.anim.slidertl);
     }
 
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
     private void take_picture(){
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+                finish();
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                Uri photoURI = FileProvider.getUriForFile(this,
+                        "com.example.android.fileprovider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                Log.v("photouri",photoFile.toString());
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            }
         }
+
     }
 
     @Override
@@ -70,12 +114,13 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         Log.v("LIFECYCLE_LOG","onActivityResult");
 
-        /* récupération de la miniature de la photo */
+        /* récupération de la photo */
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            image_bitmap = imageBitmap.copy(Bitmap.Config.ARGB_8888, false);
-            mutableBitmap = imageBitmap.copy(Bitmap.Config.ARGB_8888, true);
+            Bitmap b = BitmapFactory.decodeFile(mCurrentPhotoPath);
+            image_bitmap = b.copy(Bitmap.Config.ARGB_8888, false);
+            mutableBitmap = b.copy(Bitmap.Config.ARGB_8888, true);
+            images.add(image_bitmap);
+            indexImage = images.size() -1;
             iv.setImageBitmap(mutableBitmap);
         }
 
@@ -115,14 +160,14 @@ public class MainActivity extends AppCompatActivity {
         buttonPicture = findViewById(R.id.buttonPicture);
 
         /* ajout des images dispos à la liste */
-        images.add(R.drawable.maison);
-        images.add(R.drawable.planete);
-        images.add(R.drawable.pommes);
-        images.add(R.drawable.plage);
-        images.add(R.drawable.carre);
+        images.add(BitmapFactory.decodeResource(getResources(), R.drawable.maison));
+        images.add(BitmapFactory.decodeResource(getResources(), R.drawable.planete));
+        images.add(BitmapFactory.decodeResource(getResources(), R.drawable.pommes));
+        images.add(BitmapFactory.decodeResource(getResources(), R.drawable.plage));
+        images.add(BitmapFactory.decodeResource(getResources(), R.drawable.carre));
 
 
-        image_bitmap = BitmapFactory.decodeResource(getResources(), images.get(indexImage)); //non mutable, sert à restaurer la bitmap
+        image_bitmap = images.get(indexImage); //non mutable, sert à restaurer la bitmap
         mutableBitmap = image_bitmap.copy(Bitmap.Config.ARGB_8888, true); //mutable, on travaille sur cette bitmap
 
         iv.setImageBitmap(mutableBitmap);
@@ -134,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
                 /* au click, on passe à l'image suivante dans la liste */
                 indexImage++;
                 indexImage = indexImage%(images.size());
-                image_bitmap = BitmapFactory.decodeResource(getResources(), images.get(indexImage));
+                image_bitmap = images.get(indexImage);
                 mutableBitmap = image_bitmap.copy(Bitmap.Config.ARGB_8888, true);
                 iv.setImageBitmap(mutableBitmap);
                 tv.setText(image_bitmap.getWidth() + "/" + image_bitmap.getHeight());

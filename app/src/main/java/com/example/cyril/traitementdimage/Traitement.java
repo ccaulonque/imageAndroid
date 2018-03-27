@@ -1,6 +1,7 @@
 package com.example.cyril.traitementdimage;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.util.Log;
 
@@ -153,7 +154,7 @@ public class Traitement {
 
             if(distance > seuil) {
                 greylvl = (R+G+B)/3;
-                pixels[k] = (0 & 0xff) << 24 | (greylvl & 0xff) << 16 | (greylvl & 0xff) << 8 | (greylvl & 0xff);
+                pixels[k] = (255 & 0xff) << 24 | (greylvl & 0xff) << 16 | (greylvl & 0xff) << 8 | (greylvl & 0xff);
             }
         }
         b.setPixels(pixels,0,b.getWidth(),0,0,b.getWidth(),b.getHeight());
@@ -186,6 +187,7 @@ public class Traitement {
         b.setPixels(pixels,0,b.getWidth(),0,0,b.getWidth(),b.getHeight());
     }
 
+    //convolution qui renvoie un pixel modifié avec les composantes RGB
     private static int convolution(int[] origin, int x, int y, int width, int height, double[][] kernel, int n){
         int color;
         int u2, v2;
@@ -219,7 +221,37 @@ public class Traitement {
 
             }
         }
-        return (0 & 0xff) << 24 | ((int)convor & 0xff) << 16 | ((int)convog & 0xff) << 8 | ((int)convob & 0xff);
+        return ((int)convor & 0xff) << 16 | ((int)convog & 0xff) << 8 | ((int)convob & 0xff);
+    }
+
+    //convolution qui à partir de pixels en niveau de gris, renvoie un seul double non borné
+    private static double convolutiongrey(int[] origin, int x, int y, int width, int height, double[][] kernel, int n){
+        int color;
+        int u2, v2;
+        double k;
+        double convo = 0;
+        int B;
+        for(int u = -n; u <= n; u++){
+            for(int v = -n; v <= n; v++){
+                /* rélfexion des bords */
+                u2 = u;
+                v2 = v;
+                if (x + u < 0)       u2 = ((-2) * x) - u - 1;
+                if (x + u >= width)  u2 = 2 * width - (2 * x) - u - 1;
+                if (y + v < 0)       v2 = ((-2) * y) - v - 1;
+                if (y + v >= height) v2 = 2 * height - (2 * y) - v - 1;
+
+                color = (origin[(y + v2) * width + (x + u2)]);
+
+                B = (color      ) & 0xff;
+
+                k = kernel[u+n][v+n];
+
+                convo += ((double)(B) * k);
+
+            }
+        }
+        return convo;
     }
 
     public static void flou(Bitmap b, int n){
@@ -274,56 +306,30 @@ public class Traitement {
         b.setPixels(pixels,0,width,0,0,width,height);
     }
 
-    private static void gradientx(Bitmap b){
+    private static void gradienty(int[] pixels, int width, int height){
         double[][] noyaugradient = {{-1,0,1},{-1,0,1},{-1,0,1}};
-        int width = b.getWidth(), height = b.getHeight();
-        int[] pixels = new int[width*height];
-        int[] origin = new int[width*height];
-        int color,R,G,B;
-        b.getPixels(origin,0,width,0,0,width,height);
+        int[] origin = new int[pixels.length];
+        for(int i = 0; i < origin.length; i++){
+            origin[i] = pixels[i];
+        }
         for(int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                color = convolution(origin, x, y, width, height, noyaugradient, 1);
-                R = (color >> 16) & 0xff;
-                G = (color >>  8) & 0xff;
-                B = (color      ) & 0xff;
-                if(R > 255) R = 255;
-                if(R < 0) R = 0;
-                if(G > 255) G = 255;
-                if(G < 0) G = 0;
-                if(B > 255) B = 255;
-                if(B < 0) B = 0;
-
-                pixels[y * width + x] = (0 & 0xff) << 24 | (R & 0xff) << 16 | (G & 0xff) << 8 | (B & 0xff);
+                pixels[y * width + x] = (int) convolutiongrey(origin, x, y, width, height, noyaugradient, 1);
             }
         }
-        b.setPixels(pixels,0,width,0,0,width,height);
     }
 
-    private static void gradienty(Bitmap b){
+    private static void gradientx(int[] pixels,int width, int height){
         double[][] noyaugradient = {{-1,-1,-1},{0,0,0},{1,1,1}};
-        int width = b.getWidth(), height = b.getHeight();
-        int[] pixels = new int[width*height];
-        int[] origin = new int[width*height];
-        int color,R,G,B;
-        b.getPixels(origin,0,width,0,0,width,height);
+        int[] origin = new int[pixels.length];
+        for(int i = 0; i < origin.length; i++){
+            origin[i] = pixels[i];
+        }
         for(int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                color = convolution(origin, x, y, width, height, noyaugradient, 1);
-                R = (color >> 16) & 0xff;
-                G = (color >>  8) & 0xff;
-                B = (color      ) & 0xff;
-                if(R > 255) R = 255;
-                if(R < 0) R = 0;
-                if(G > 255) G = 255;
-                if(G < 0) G = 0;
-                if(B > 255) B = 255;
-                if(B < 0) B = 0;
-
-                pixels[y * width + x] = (0 & 0xff) << 24 | (R & 0xff) << 16 | (G & 0xff) << 8 | (B & 0xff);
+                pixels[y * width + x] = (int) convolutiongrey(origin, x, y, width, height, noyaugradient, 1);
             }
         }
-        b.setPixels(pixels,0,width,0,0,width,height);
     }
 
     public static void toBW(Bitmap b){
@@ -356,39 +362,29 @@ public class Traitement {
     }
 
     public static void gradient(Bitmap b){
+        toGray(b);
         int width = b.getWidth(), height = b.getHeight();
-        int color, Rx, Gx, Bx, greyx, Ry, Gy, By, greyy, m;
-        Bitmap gradientx = b.copy(Bitmap.Config.ARGB_8888,true);
-        Bitmap gradienty = b.copy(Bitmap.Config.ARGB_8888,true);
-        gradientx(gradientx);
-        gradienty(gradienty);
-        int[] pixelsx = new int[width*height];
-        int[] pixelsy = new int[width*height];
+        int greyx, greyy, m;
+        int[] convosx = new int[width*height];
+        int[] convosy = new int[width*height];
         int[] pixels = new int[width*height];
-        gradientx.getPixels(pixelsx,0,width,0,0,width,height);
-        gradienty.getPixels(pixelsy,0,width,0,0,width,height);
+        b.getPixels(convosx,0,width,0,0,width,height);
+        b.getPixels(convosy,0,width,0,0,width,height);
+        gradientx(convosx, width, height);
+        gradienty(convosy, width, height);
         for(int i = 0; i < pixels.length; i++){
-            color = pixelsx[i];
-            Rx = (color >> 16) & 0xff;
-            Gx = (color >>  8) & 0xff;
-            Bx = (color      ) & 0xff;
-            greyx = (Rx+Gx+Bx)/3;
-
-            color = pixelsy[i];
-            Ry = (color >> 16) & 0xff;
-            Gy = (color >>  8) & 0xff;
-            By = (color      ) & 0xff;
-            greyy = (Ry+Gy+By)/3;
+            greyx = convosx[i];
+            greyy = convosy[i];
 
             m = (int) Math.sqrt(greyx*greyx+greyy*greyy);
             if(m > 255) m = 255;
-            //m = (m > 180) ? 0 : 255;
-            pixels[i] = (0 & 0xff) << 24 | (m & 0xff) << 16 | (m & 0xff) << 8 | (m & 0xff);
+            pixels[i] = (255 & 0xff) << 24 | (m & 0xff) << 16 | (m & 0xff) << 8 | (m & 0xff);
         }
         b.setPixels(pixels,0,width,0,0,width,height);
     }
 
     public static void laplace(Bitmap b){
+        toGray(b);
         double[][] noyaulaplace = {{0,1,0},{1,-8,1},{0,1,0}};
         for(int x = -1; x < 1; x++){
             for(int y = -1; y < 1; y++){
@@ -398,21 +394,17 @@ public class Traitement {
         int width = b.getWidth(), height = b.getHeight();
         int[] pixels = new int[width*height];
         int[] origin = new int[width*height];
-        int color,R,G,B;
+        int convo,R,G,B;
         b.getPixels(origin,0,width,0,0,width,height);
         for(int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {color = convolution(origin, x, y, width, height, noyaulaplace, 1);
-                R = (color >> 16) & 0xff;
-                G = (color >>  8) & 0xff;
-                B = (color      ) & 0xff;
-                if(R > 255) R = 255;
-                if(R < 0) R = 0;
-                if(G > 255) G = 255;
-                if(G < 0) G = 0;
-                if(B > 255) B = 255;
-                if(B < 0) B = 0;
+            for (int y = 0; y < height; y++) {
+                convo = (int) convolutiongrey(origin, x, y, width, height, noyaulaplace, 1);
+                if(convo < 0)
+                    convo = - convo;
+                if(convo > 255)
+                    convo = 255;
 
-                pixels[y * width + x] = (0 & 0xff) << 24 | (R & 0xff) << 16 | (G & 0xff) << 8 | (B & 0xff);
+                pixels[y * width + x] = (255 & 0xff) << 24 | (convo & 0xff) << 16 | (convo & 0xff) << 8 | (convo & 0xff);
             }
         }
         b.setPixels(pixels,0,width,0,0,width,height);
