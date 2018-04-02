@@ -75,7 +75,7 @@ public class Traitement {
             B = (color      ) & 0xff;
             greylvl = (int)((0.3 * (double)R + 0.59 * (double)G + 0.11 * (double)B));
             newgreylvl = lookuptable[greylvl];
-            pixels[i] = (0 & 0xff) << 24 | (newgreylvl & 0xff) << 16 | (newgreylvl & 0xff) << 8 | (newgreylvl & 0xff);
+            pixels[i] = (255 & 0xff) << 24 | (newgreylvl & 0xff) << 16 | (newgreylvl & 0xff) << 8 | (newgreylvl & 0xff);
         }
 
         b.setPixels(pixels,0,b.getWidth(),0,0,b.getWidth(),b.getHeight());
@@ -110,7 +110,7 @@ public class Traitement {
             R = (color >> 16) & 0xff;
             G = (color >>  8) & 0xff;
             B = (color      ) & 0xff;
-            pixels[i] = (0 & 0xff) << 24 | (lookuptable[R] & 0xff) << 16 | (lookuptable[G] & 0xff) << 8 | (lookuptable[B] & 0xff);
+            pixels[i] = (255 & 0xff) << 24 | (lookuptable[R] & 0xff) << 16 | (lookuptable[G] & 0xff) << 8 | (lookuptable[B] & 0xff);
         }
 
         b.setPixels(pixels,0,b.getWidth(),0,0,b.getWidth(),b.getHeight());
@@ -167,9 +167,9 @@ public class Traitement {
         int R,G,B,color;
 
         int lookuptable[] = new int[256];
-        int c = 0;
+        int c;
         for(int i = 0; i < 256; i++){
-            c = 0;
+             c = 0;
             for(int j = 0; j < i; j++){
                 c+=histo[j];
             }
@@ -181,7 +181,7 @@ public class Traitement {
             R = (color >> 16) & 0xff;
             G = (color >>  8) & 0xff;
             B = (color      ) & 0xff;
-            pixels[i] = (0 & 0xff) << 24 | (lookuptable[R] & 0xff) << 16 | (lookuptable[G] & 0xff) << 8 | (lookuptable[B] & 0xff);
+            pixels[i] = (255 & 0xff) << 24 | (lookuptable[R] & 0xff) << 16 | (lookuptable[G] & 0xff) << 8 | (lookuptable[B] & 0xff);
         }
 
         b.setPixels(pixels,0,b.getWidth(),0,0,b.getWidth(),b.getHeight());
@@ -356,7 +356,7 @@ public class Traitement {
             B = (color      ) & 0xff;
             greylvl = (R+G+B)/3;
             greylvl = (greylvl >= middle) ? 255 : 0;
-            pixels[k] = (0 & 0xff) << 24 | (greylvl & 0xff) << 16 | (greylvl & 0xff) << 8 | (greylvl & 0xff);
+            pixels[k] = (255 & 0xff) << 24 | (greylvl & 0xff) << 16 | (greylvl & 0xff) << 8 | (greylvl & 0xff);
         }
         b.setPixels(pixels,0,b.getWidth(),0,0,b.getWidth(),b.getHeight());
     }
