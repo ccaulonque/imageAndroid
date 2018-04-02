@@ -294,6 +294,7 @@ public class MainActivity extends AppCompatActivity {
                 iv.setImageBitmap(mutableBitmap);
                 iv.setImageMatrix(matrix);
                 tX = tY = 0;
+                initBitmap();
                 break;
             case R.id.action_flou:
                 callKernel("flou");
