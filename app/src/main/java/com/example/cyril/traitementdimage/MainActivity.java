@@ -3,10 +3,6 @@ package com.example.cyril.traitementdimage;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.Matrix;
-import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -15,18 +11,11 @@ import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.util.TypedValue;
-import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
-import android.view.GestureDetector;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.Window;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Button;
-
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -41,30 +30,13 @@ public class MainActivity extends AppCompatActivity {
     static final int PICK_RGB_COLOR = 0;
     static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int PICK_KERNEL_SIZE = 2;
-    int actionBarHeight = 0;
-    int statusBarHeight = 0;
     Bitmap mutableBitmap, image_bitmap;
-    ImageView iv;
-    int ivWidth, ivHeight = 0;
+    TouchImageView iv;
     TextView tv;
     Button bt, buttonPicture;
-    ScaleGestureDetector SGD;
-    GestureDetector GD;
-    float scale = 1f;
-    float tX = 0, tY = 0;
-    boolean ZOOMED_IN = false;
-    boolean bitmap_ready = false;
-    Matrix matrix = new Matrix();
     int indexImage;
     String mCurrentPhotoPath;
     ArrayList<Bitmap> images = new ArrayList<Bitmap>(); //liste des images disponibles
-
-    @Override
-    public boolean onTouchEvent(MotionEvent ev) {
-        //SGD.onTouchEvent(ev);
-        GD.onTouchEvent(ev);
-        return true;
-    }
 
     private void callHisto() {
         //intent avec l'histogramme de la bitmap actuelle
@@ -130,28 +102,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void onWindowFocusChanged(boolean hasFocus) {
-        iv = findViewById(R.id.imageView);
-        ivWidth = iv.getWidth();
-        ivHeight = iv.getHeight();
-        if(!bitmap_ready)
-            initBitmap();
-    }
-
-    private void initBitmap() {
-        ZOOMED_IN = false;
-        Rect rectDrawable = iv.getDrawable().getBounds();
-        scale = Math.min((float) ivWidth / (float) rectDrawable.width(), (float) ivHeight / (float) rectDrawable.height());
-
-        matrix.setScale(scale, scale);
-        iv.setImageMatrix(matrix);
-        float[] mvalues = new float[9];
-        matrix.getValues(mvalues);
-        tX = mvalues[2];
-        tY = mvalues[5];
-        bitmap_ready = true;
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -165,6 +115,8 @@ public class MainActivity extends AppCompatActivity {
             images.add(image_bitmap);
             indexImage = images.size() - 1;
             iv.setImageBitmap(mutableBitmap);
+            iv.resetZoom();
+            tv.setText(""+iv.getCurrentZoom());
         }
 
         /* récupération de la couleur du filtre */
@@ -198,12 +150,10 @@ public class MainActivity extends AppCompatActivity {
         Log.v("LIFECYCLE_LOG", "onCreate");
 
         iv = findViewById(R.id.imageView);
+        iv.setMaxZoom(5.0f);
         tv = findViewById(R.id.textView);
         bt = findViewById(R.id.button);
         buttonPicture = findViewById(R.id.buttonPicture);
-
-        //SGD = new ScaleGestureDetector(this, new simpleOnScaleGestureListener());
-        GD = new GestureDetector(this, new simpleGestureListener());
 
         /* ajout des images dispos à la liste */
         images.add(BitmapFactory.decodeResource(getResources(), R.drawable.maison));
@@ -216,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
         mutableBitmap = image_bitmap.copy(Bitmap.Config.ARGB_8888, true); //mutable, on travaille sur cette bitmap
 
         iv.setImageBitmap(mutableBitmap);
+        tv.setText(""+iv.getCurrentZoom());
 
         bt.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -226,7 +177,15 @@ public class MainActivity extends AppCompatActivity {
                 image_bitmap = images.get(indexImage);
                 mutableBitmap = image_bitmap.copy(Bitmap.Config.ARGB_8888, true);
                 iv.setImageBitmap(mutableBitmap);
-                initBitmap();
+                iv.resetZoom();
+                tv.setText(""+iv.getCurrentZoom());
+            }
+        });
+
+        iv.setOnTouchImageViewListener(new TouchImageView.OnTouchImageViewListener() {
+            @Override
+            public void onMove() {
+                tv.setText(""+iv.getCurrentZoom());
             }
         });
 
@@ -243,22 +202,6 @@ public class MainActivity extends AppCompatActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
-    }
-
-    /* actionBar + satusBar Height */
-    public void getTopHeight() {
-        Window window = getWindow();
-        TypedValue tval = new TypedValue();
-        Rect rectangle = new Rect();
-
-            /* get actionBar Height */
-        if (getTheme().resolveAttribute(android.R.attr.actionBarSize, tval, true)) {
-            actionBarHeight = TypedValue.complexToDimensionPixelSize(tval.data, getResources().getDisplayMetrics());
-        }
-
-            /* get statusBar Height */
-        window.getDecorView().getWindowVisibleDisplayFrame(rectangle);
-        statusBarHeight = rectangle.top;
     }
 
     @Override
@@ -289,12 +232,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.action_restaurer:
                 mutableBitmap = image_bitmap.copy(Bitmap.Config.ARGB_8888, true);
-                scale = 1f;
-                matrix.setScale(scale, scale);
-                iv.setImageBitmap(mutableBitmap);
-                iv.setImageMatrix(matrix);
-                tX = tY = 0;
-                initBitmap();
+                iv.resetZoom();
                 break;
             case R.id.action_flou:
                 callKernel("flou");
@@ -318,108 +256,14 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    /* coordonnées de l'écran vers coordonnées de la bitmap */
-    public void mapPointToBitmap(float point[]) {
-        //get status bar and action bar height
-        getTopHeight();
-
-        point[0] = (point[0] - iv.getLeft() - tX) / scale;
-        point[1] = (point[1] - iv.getTop() - actionBarHeight - statusBarHeight - tY) / scale;
-    }
-
-    public class simpleGestureListener extends GestureDetector.SimpleOnGestureListener {
-        @Override
-        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            tX += -distanceX;
-            tY += -distanceY;
-            matrix.postTranslate(-distanceX, -distanceY);
-
-            iv.setImageMatrix(matrix);
-
-            return super.onScroll(e1, e2, distanceX, distanceY);
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        for(File file: dir.listFiles()){
+            file.delete();
         }
-
-        @Override
-        public boolean onSingleTapConfirmed(MotionEvent e) {
-            float[] eCoords = {e.getX(), e.getY()};
-            mapPointToBitmap(eCoords);
-
-            try {
-
-                int x = (int) eCoords[0];
-                int y = (int) eCoords[1];
-
-                for (int i = x - 10; i <= x + 10; i++) {
-                    for (int j = y - 10; j <= y + 10; j++) {
-                        mutableBitmap.setPixel(i, j, Color.RED);
-                    }
-                }
-                iv.invalidate();
-            } catch (java.lang.IllegalArgumentException exc) {
-
-            }
-
-            return super.onSingleTapConfirmed(e);
-        }
-
-        @Override
-        public boolean onDoubleTap(MotionEvent e) {
-            float[] eCoords = {e.getX(), e.getY()};
-            mapPointToBitmap(eCoords);
-
-            try {
-                int x = (int) eCoords[0];
-                int y = (int) eCoords[1];
-
-                if (!ZOOMED_IN)
-                    scale *= 3;
-                else
-                    scale /= 3;
-                ZOOMED_IN = !ZOOMED_IN;
-                matrix.setScale(scale, scale, x, y);
-                iv.setImageMatrix(matrix);
-                float[] mvalues = new float[9];
-                matrix.getValues(mvalues);
-                tX = mvalues[2];
-                tY = mvalues[5];
-            } catch (java.lang.IllegalArgumentException exc) {
-
-            }
-            return super.onDoubleTap(e);
-        }
-    }
-
-    /*classe non fonctionnelle */
-    public class simpleOnScaleGestureListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
-        //float[] focusCoords = new float[2];
-
-        @Override
-        public boolean onScaleBegin(ScaleGestureDetector detector) {
-            /*focusCoordsOut[0] = detector.getFocusX();
-            focusCoordsOut[1] = detector.getFocusY();
-            mapPointToBitmap(focusCoordsOut);*/
-            return true;
-        }
-
-        @Override
-        public boolean onScale(ScaleGestureDetector detector) {
-            /*focusCoords[0] = detector.getFocusX();
-            focusCoords[1] = detector.getFocusY();
-            mapPointToBitmap(focusCoords);
-
-            if(detector.getScaleFactor() > 1) {
-                scale = scale * detector.getScaleFactor();
-                scale = Math.max(0.1f, Math.min(scale, 5f));
-                if (scale < 4.9f && scale > 0.11f ) {
-                    matrix.setScale(scale, scale, focusCoords[0], focusCoords[1]);
-                    iv.setImageMatrix(matrix);
-                    float[] mvalues = new float[9];
-                    matrix.getValues(mvalues);
-                    tX = mvalues[2];
-                    tY = mvalues[5];
-                }
-            }*/
-            return super.onScale(detector);
-        }
+        File tempfile = new File(mCurrentPhotoPath);
+        tempfile.delete();
     }
 }
