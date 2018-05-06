@@ -1,11 +1,10 @@
 package com.example.cyril.traitementdimage;
 
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.support.v8.renderscript.Allocation;
 import android.support.v8.renderscript.RenderScript;
-import android.util.Log;
 
+import com.android.rssample.ScriptC_colorize7;
 import com.android.rssample.ScriptC_grey;
 
 import java.util.Arrays;
@@ -34,7 +33,22 @@ public class Traitement {
     }
 
     public static void toGray(Bitmap b) {
-        /*int[] pixels = new int[b.getWidth()*b.getHeight()];
+        RenderScript rs = RenderScript.create(MyApplication.getAppContext());
+
+        Allocation input = Allocation.createFromBitmap(rs, b);
+        Allocation output = Allocation.createTyped(rs, input.getType());
+        ScriptC_grey randomScript = new ScriptC_grey(rs);
+
+        randomScript.forEach_toGrey(input, output);
+        output.copyTo(b);
+        output.destroy();
+        randomScript.destroy();
+        rs.destroy();
+
+
+        // VERSION SIMPLE
+        /*
+        int[] pixels = new int[b.getWidth()*b.getHeight()];
         b.getPixels(pixels,0,b.getWidth(),0,0,b.getWidth(),b.getHeight());
         int color,greylvl,R,G,B;
         for(int k = 0; k < pixels.length; k++){
@@ -45,21 +59,8 @@ public class Traitement {
             greylvl = (int)((0.3 * (double)R + 0.59 * (double)G + 0.11 * (double)B));
             pixels[k] = (0 & 0xff) << 24 | (greylvl & 0xff) << 16 | (greylvl & 0xff) << 8 | (greylvl & 0xff);
         }
-        b.setPixels(pixels,0,b.getWidth(),0,0,b.getWidth(),b.getHeight());*/
-        RenderScript rs = RenderScript.create(MyApplication.getAppContext());
-
-        Allocation input = Allocation.createFromBitmap(rs, b);
-        Allocation output = Allocation.createTyped(rs, input.getType());
-        ScriptC_grey randomScript = new ScriptC_grey(rs);
-
-        //todo
-        //todo
-
-        randomScript.forEach_toGrey(input, output);
-        output.copyTo(b);
-        output.destroy();
-        randomScript.destroy();
-        rs.destroy();
+        b.setPixels(pixels,0,b.getWidth(),0,0,b.getWidth(),b.getHeight());
+         */
     }
 
     public static void toGrayExtension(Bitmap b, int contrasteMin, int contrasteMax) {
@@ -136,6 +137,22 @@ public class Traitement {
     }
 
     public static void colorize(Bitmap b) {
+        RenderScript rs = RenderScript.create(MyApplication.getAppContext());
+
+        Allocation input = Allocation.createFromBitmap(rs, b);
+        Allocation output = Allocation.createTyped(rs, input.getType());
+        ScriptC_colorize7 colorizeScript = new ScriptC_colorize7(rs);
+
+        colorizeScript.set_randomH((float) (Math.random() * 360));
+        colorizeScript.forEach_colorize(input, output);
+        output.copyTo(b);
+        output.destroy();
+        colorizeScript.destroy();
+        rs.destroy();
+
+
+        // VERSION SIMPLE
+        /*
         int[] pixels = new int[b.getWidth() * b.getHeight()];
         b.getPixels(pixels, 0, b.getWidth(), 0, 0, b.getWidth(), b.getHeight());
         int teinte = (int) (Math.random() * 360);
@@ -147,7 +164,7 @@ public class Traitement {
             hsv[0] = teinte;
             pixels[k] = Color.HSVToColor(hsv);
         }
-        b.setPixels(pixels, 0, b.getWidth(), 0, 0, b.getWidth(), b.getHeight());
+        b.setPixels(pixels, 0, b.getWidth(), 0, 0, b.getWidth(), b.getHeight()); */
     }
 
     public static void color_filter(Bitmap b, int c) {
@@ -303,7 +320,7 @@ public class Traitement {
             }
             DEBUG += "\n";
         }
-        Log.v("FILTRE", DEBUG);
+
         double k = 1 / somme;
         for (int x = -n; x <= n; x++) {
             for (int y = -n; y <= n; y++) {

@@ -1,13 +1,6 @@
-/*
- * TouchImageView.java
- * By: Michael Ortiz
- * Updated By: Patrick Lackemacher
- * Updated By: Babay88
- * Updated By: @ipsilondev
- * Updated By: hank-cp
- * Updated By: singpolyma
- * -------------------
- * Extends Android ImageView to include pinch zooming, panning, fling and double tap zoom.
+
+/* Classe importée
+ * https://github.com/MikeOrtiz/TouchImageView/blob/master/src/com/ortiz/touch/TouchImageView.java
  */
 
 package com.example.cyril.traitementdimage;
@@ -38,7 +31,7 @@ import android.widget.ImageView;
 import android.widget.OverScroller;
 import android.widget.Scroller;
 
-public class TouchImageView extends android.support.v7.widget.AppCompatImageView {
+public class TouchImageView extends ImageView {
 
     private static final String DEBUG = "DEBUG";
 
@@ -398,7 +391,11 @@ public class TouchImageView extends android.support.v7.widget.AppCompatImageView
         setImageMatrix(matrix);
     }
 
-
+    /**
+     * Set zoom parameters equal to another TouchImageView. Including scale, position,
+     * and ScaleType.
+     * @param TouchImageView
+     */
     public void setZoom(TouchImageView img) {
         PointF center = img.getScrollPosition();
         setZoom(img.getCurrentZoom(), center.x, center.y, img.getScaleType());

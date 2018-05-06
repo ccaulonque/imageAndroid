@@ -5,8 +5,8 @@ android {
     defaultConfig {
         renderscriptTargetApi 18
         renderscriptSupportModeEnabled true
-        applicationId "com.exampl.cyril.traitementdimage"
-        minSdkVersion 17
+        applicationId "com.example.cyril.traitementdimage"
+        minSdkVersion 23
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"

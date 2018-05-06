@@ -1,0 +1,5 @@
+toGray (rs) -> 100 607 micro secs
+toGrey (simple) -> 133 639 micro secs
+
+colorize (rs) -> 339 104 micro secs
+colorize (simple) -> 10 340 087 micro secs

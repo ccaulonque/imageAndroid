@@ -1,2 +1,0 @@
-toGray (rs) -> 100 607 micro secs
-toGrey (simple) -> 133 639 micro secs
